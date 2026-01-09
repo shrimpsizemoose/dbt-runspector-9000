@@ -1,6 +1,6 @@
-.PHONY: auth run stop clean clean-all logs status health build restart help
+.PHONY: auth run stop clean clean-all logs status health build restart help tag hooks
 
-IMAGE := shrimpsizemoose/dbt-runspector-9000:latest
+IMAGE := ghcr.io/shrimpsizemoose/dbt-runspector-9000:latest
 CONTAINER := dbt-runspector-9000
 CONFIG_CONTAINER := gcloud-config
 PORT := 8765
@@ -48,3 +48,12 @@ build: ## Build Docker image locally
 	docker build \
 		--build-arg GIT_SHA=$$(git rev-parse --short HEAD) \
 		-t $(IMAGE) server/
+
+install-prek-hooks: ## Install pre-commit hooks
+	prek install --hook-type pre-push
+
+tag: ## Create git tag from manifest.json version
+	@version=$$(grep -Po '"version":\s*"\K[^"]+' extension/manifest.json) && \
+	echo "Creating tag: $$version" && \
+	git tag "$$version" && \
+	echo "Run 'git push origin $$version' to push"

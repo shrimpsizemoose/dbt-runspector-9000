@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: check-tag-version
+        name: Check tag matches manifest.json version
+        entry: ./scripts/check-tag-version.sh
+        language: script
+        stages: [pre-push]
+        always_run: true

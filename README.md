@@ -33,6 +33,8 @@ make logs        Follow server logs
 make status      Show container status
 make health      Check server health endpoint
 make build       Build Docker image locally
+make hooks       Install pre-commit hooks
+make tag         Create git tag from manifest.json version
 ```
 
 ### Quick Start
@@ -104,22 +106,33 @@ Lists all cached visualizations.
 
 ## Development
 
+### Prerequisites
+
+- [prek](https://github.com/pre-commit/pre-commit) for git hooks
+
+### Setup
+
+```bash
+make hooks  # Install pre-push hook via prek (one-time)
+```
+
+This installs a pre-push hook that validates tag versions match `manifest.json`.
+
 ### Release
 
-1. Create and push a tag:
+1. Update version in `extension/manifest.json`
+2. Commit the change
+3. Create and push tag:
    ```bash
-   git tag 1.0
-   git push origin 1.0
+   make tag                  # Creates tag from manifest.json version
+   git push origin <version>
    ```
 
-2. GitHub Actions builds and pushes:
-   - `shrimpsizemoose/dbt-runspector-9000:1.0`
-   - `shrimpsizemoose/dbt-runspector-9000:latest`
+4. GitHub Actions builds and pushes:
+   - `ghcr.io/shrimpsizemoose/dbt-runspector-9000:<version>`
+   - `ghcr.io/shrimpsizemoose/dbt-runspector-9000:latest`
 
-### Required GitHub Secrets
-
-- `DOCKERHUB_USERNAME`
-- `DOCKERHUB_TOKEN`
+The pre-push hook rejects tags that don't match `manifest.json` version.
 
 ## Q&A
 
