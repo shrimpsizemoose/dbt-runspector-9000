@@ -1,5 +1,7 @@
 FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:stable
 
+RUN apt-get update && apt-get install -y python3 && rm -rf /var/lib/apt/lists/*
+
 ARG VERSION=dev
 ARG GIT_SHA=unknown
 

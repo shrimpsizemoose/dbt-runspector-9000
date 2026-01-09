@@ -12,19 +12,48 @@
       font-size: 16px;
       margin: 0 0 15px 0;
     }
+    h2 {
+      font-size: 13px;
+      color: #333;
+      margin: 20px 0 10px 0;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+    h2:first-of-type {
+      margin-top: 15px;
+      padding-top: 0;
+      border-top: none;
+    }
     label {
       display: block;
       font-size: 12px;
       color: #666;
       margin-bottom: 5px;
     }
-    input {
+    input[type="text"], input[type="number"], select {
       width: 100%;
       padding: 8px;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 14px;
       box-sizing: border-box;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    .checkbox-field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .checkbox-field input {
+      width: auto;
+      margin: 0;
+    }
+    .checkbox-field label {
+      margin: 0;
+      color: #333;
     }
     .status {
       margin-top: 10px;
@@ -55,12 +84,51 @@
     }
     .info-label { color: #666; }
     .info-value { font-family: monospace; }
+    .hint {
+      font-size: 11px;
+      color: #999;
+      margin-top: 3px;
+    }
   </style>
 </head>
 <body>
   <h1>dbt Runspector 9000</h1>
-  <label for="serverUrl">Server URL</label>
-  <input type="text" id="serverUrl" placeholder="http://localhost:8765">
+
+  <h2>Server</h2>
+  <div class="field">
+    <label for="serverUrl">Server URL</label>
+    <input type="text" id="serverUrl" placeholder="http://localhost:8765">
+  </div>
+  <div class="field">
+    <label for="timeout">Request Timeout (seconds)</label>
+    <input type="number" id="timeout" min="5" max="300" value="30">
+    <div class="hint">How long to wait for GCS fetch</div>
+  </div>
+
+  <h2>Behavior</h2>
+  <div class="field">
+    <label for="openBehavior">Open results in</label>
+    <select id="openBehavior">
+      <option value="newTab">New tab</option>
+      <option value="sameTab">Same tab</option>
+      <option value="newWindow">New window</option>
+    </select>
+  </div>
+  <div class="checkbox-field">
+    <input type="checkbox" id="copyUrl">
+    <label for="copyUrl">Copy gs:// URL to clipboard on inspect</label>
+  </div>
+
+  <h2>Appearance</h2>
+  <div class="field">
+    <label for="theme">Theme</label>
+    <select id="theme">
+      <option value="system">System default</option>
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+  </div>
+
   <div class="status" id="status">Saved</div>
   <div class="server-info" id="serverInfo">Checking server...</div>
   <script src="options.js"></script>

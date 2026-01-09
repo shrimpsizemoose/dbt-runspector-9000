@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # ruff: noqa: S104 S404 S603 S607
+import hashlib
 import json
 import logging
 import os
 import pathlib
 import subprocess
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 HOST = os.getenv("HOST", "0.0.0.0")
@@ -12,6 +14,10 @@ PORT = int(os.getenv("PORT", "8765"))
 VERSION = os.getenv("VERSION", "dev")
 GIT_SHA = os.getenv("GIT_SHA", "unknown")
 TEMPLATE_PATH = pathlib.Path(__file__).parent / "template.html"
+CACHE_TTL = 3600  # 1 hour
+
+# Simple in-memory cache: {id: (html, source, timestamp)}
+view_cache: dict[str, tuple[str, str, float]] = {}
 
 logging.basicConfig(
     level=logging.INFO,
@@ -75,6 +81,43 @@ class RequestHandler(BaseHTTPRequestHandler):
                     }
                 ).encode()
             )
+        elif self.path == "/views":
+            self.send_response(200)
+            self._send_cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            now = time.time()
+            views = []
+            expired = []
+            for view_id, (_, source, timestamp) in view_cache.items():
+                if now - timestamp < CACHE_TTL:
+                    views.append({
+                        "id": view_id,
+                        "source": source,
+                        "created": timestamp,
+                        "expires_in": int(CACHE_TTL - (now - timestamp)),
+                    })
+                else:
+                    expired.append(view_id)
+            for view_id in expired:
+                del view_cache[view_id]
+            views.sort(key=lambda v: v["created"], reverse=True)
+            self.wfile.write(json.dumps({"views": views}).encode())
+        elif self.path.startswith("/view/"):
+            view_id = self.path[6:].split("?")[0]  # strip query params
+            if view_id in view_cache:
+                html, _, timestamp = view_cache[view_id]
+                if time.time() - timestamp < CACHE_TTL:
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.end_headers()
+                    self.wfile.write(html.encode())
+                    return
+                del view_cache[view_id]
+            self.send_response(404)
+            self.send_header("Content-Type", "text/html")
+            self.end_headers()
+            self.wfile.write(b"<h1>View not found or expired</h1>")
         else:
             self.send_response(404)
             self.end_headers()
@@ -101,13 +144,17 @@ class RequestHandler(BaseHTTPRequestHandler):
 
             html = generate_html(data, gs_url)
 
+            # Generate view ID and cache
+            view_id = hashlib.sha256(f"{gs_url}{time.time()}".encode()).hexdigest()[:12]
+            view_cache[view_id] = (html, gs_url, time.time())
+
             self.send_response(200)
             self._send_cors_headers()
-            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(html.encode())
+            self.wfile.write(json.dumps({"id": view_id}).encode())
 
-            logger.info(f"Successfully served visualization for {gs_url}")
+            logger.info(f"Created view {view_id} for {gs_url}")
 
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON: {e}")
