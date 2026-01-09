@@ -19,23 +19,28 @@ Visualize dbt `run_results.json` files from GCS with a Chrome extension.
 
 ## Server
 
-### Run with Docker
+### Makefile Targets
 
-```bash
-docker run -d \
-  --name dbt-runspector-9000 \
-  --volumes-from gcloud-config \
-  -p 8765:8765 \
-  shrimpsizemoose/dbt-runspector-9000:latest
+```
+make help        Show available targets
+make auth        Setup gcloud authentication (run once)
+make run         Start the server container
+make stop        Stop the server container
+make restart     Restart the server container
+make clean       Stop and remove server container
+make clean-all   Remove server and gcloud-config containers
+make logs        Follow server logs
+make status      Show container status
+make health      Check server health endpoint
+make build       Build Docker image locally
 ```
 
-The container expects gcloud credentials via `--volumes-from gcloud-config`.
-
-### Build locally
+### Quick Start
 
 ```bash
-cd server
-docker build -t dbt-runspector-9000 .
+make auth    # First time: authenticate with GCP
+make run     # Start server
+make health  # Verify it's running
 ```
 
 ### API
@@ -55,7 +60,26 @@ Request:
 {"url": "gs://bucket/path/to/run_results.json"}
 ```
 
-Response: HTML visualization page.
+Response:
+```json
+{"id": "a1b2c3d4e5f6"}
+```
+
+**GET /view/{id}**
+
+Returns the HTML visualization for the given view ID.
+
+**GET /views**
+
+Lists all cached visualizations.
+
+```json
+{
+  "views": [
+    {"id": "a1b2c3d4e5f6", "source": "gs://bucket/path", "created": 1704825600, "expires_in": 3200}
+  ]
+}
+```
 
 ## Chrome Extension
 
