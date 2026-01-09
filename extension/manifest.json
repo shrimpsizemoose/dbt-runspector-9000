@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "dbt Runspector 9000",
+  "version": "1.0",
+  "description": "Visualize dbt run_results.json files from GCS",
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

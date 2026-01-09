@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 20px;
+      min-width: 320px;
+    }
+    h1 {
+      font-size: 16px;
+      margin: 0 0 15px 0;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .status {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #4ade80;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .status.show { opacity: 1; }
+    .server-info {
+      margin-top: 15px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .server-info.error {
+      background: #fee;
+      color: #c00;
+    }
+    .server-info.connected {
+      background: #efe;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+    }
+    .info-label { color: #666; }
+    .info-value { font-family: monospace; }
+  </style>
+</head>
+<body>
+  <h1>dbt Runspector 9000</h1>
+  <label for="serverUrl">Server URL</label>
+  <input type="text" id="serverUrl" placeholder="http://localhost:8765">
+  <div class="status" id="status">Saved</div>
+  <div class="server-info" id="serverInfo">Checking server...</div>
+  <script src="options.js"></script>
+</body>
+</html>
