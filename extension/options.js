@@ -3,7 +3,8 @@ const DEFAULTS = {
   timeout: 30,
   openBehavior: "newTab",
   copyUrl: false,
-  theme: "system"
+  theme: "system",
+  statsDisplay: "full"
 };
 
 const elements = {
@@ -12,6 +13,7 @@ const elements = {
   openBehavior: document.getElementById("openBehavior"),
   copyUrl: document.getElementById("copyUrl"),
   theme: document.getElementById("theme"),
+  statsDisplay: document.getElementById("statsDisplay"),
   status: document.getElementById("status"),
   serverInfo: document.getElementById("serverInfo")
 };
@@ -48,7 +50,8 @@ function saveSettings() {
     timeout: parseInt(elements.timeout.value) || DEFAULTS.timeout,
     openBehavior: elements.openBehavior.value,
     copyUrl: elements.copyUrl.checked,
-    theme: elements.theme.value
+    theme: elements.theme.value,
+    statsDisplay: elements.statsDisplay.value
   };
   chrome.storage.sync.set(settings, showSaved);
   return settings;
@@ -63,6 +66,7 @@ chrome.storage.sync.get(Object.keys(DEFAULTS), (result) => {
   elements.openBehavior.value = settings.openBehavior;
   elements.copyUrl.checked = settings.copyUrl;
   elements.theme.value = settings.theme;
+  elements.statsDisplay.value = settings.statsDisplay;
 
   checkServer(settings.serverUrl);
 });
@@ -80,3 +84,4 @@ elements.timeout.addEventListener("change", saveSettings);
 elements.openBehavior.addEventListener("change", saveSettings);
 elements.copyUrl.addEventListener("change", saveSettings);
 elements.theme.addEventListener("change", saveSettings);
+elements.statsDisplay.addEventListener("change", saveSettings);

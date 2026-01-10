@@ -1,13 +1,29 @@
-FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:stable
+FROM golang:1.25-alpine AS builder
 
-RUN apt-get update && apt-get install -y python3 && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY main.go template.html ./
 
 ARG VERSION=dev
 ARG GIT_SHA=unknown
 
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags="-s -w" \
+    -o server .
+
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates
+
 WORKDIR /app
 
-COPY server.py template.html ./
+COPY --from=builder /app/server .
+
+ARG VERSION=dev
+ARG GIT_SHA=unknown
 
 ENV HOST=0.0.0.0
 ENV PORT=8765
@@ -16,4 +32,4 @@ ENV GIT_SHA=${GIT_SHA}
 
 EXPOSE 8765
 
-CMD ["python3", "server.py"]
+CMD ["./server"]

@@ -6,15 +6,15 @@ Visualize dbt `run_results.json` files from GCS with a Chrome extension.
 
 ```
 ┌──────────────┐        ┌─────────────────────────────────────────┐
-│   Chrome     │        │  Docker Container                       │
-│  Extension   │──────▶ │  google-cloud-sdk + python server       │
+│   Chrome     │        │  Docker Container (~36MB)               │
+│  Extension   │──────▶ │  Go server + GCS SDK                    │
 │              │  HTTP  │                                         │
-│  settings:   │        │  server.py ──▶ gcloud ──▶ GCS           │
+│  settings:   │        │  main.go ──▶ GCS API                    │
 │  • host:port │        │      │                                  │
 └──────────────┘        │      ▼                                  │
-                        │  template.html                          │
+                        │  template.html (embedded)               │
                         └─────────────────────────────────────────┘
-                              volumes-from: gcloud-config
+                              mounts: ~/.config/gcloud
 ```
 
 ## Server
@@ -22,19 +22,18 @@ Visualize dbt `run_results.json` files from GCS with a Chrome extension.
 ### Makefile Targets
 
 ```
-make help        Show available targets
-make auth        Setup gcloud authentication (run once)
-make run         Start the server container
-make stop        Stop the server container
-make restart     Restart the server container
-make clean       Stop and remove server container
-make clean-all   Remove server and gcloud-config containers
-make logs        Follow server logs
-make status      Show container status
-make health      Check server health endpoint
-make build       Build Docker image locally
-make hooks       Install pre-commit hooks
-make tag         Create git tag from manifest.json version
+make help               Show available targets
+make auth               Setup gcloud credentials (via docker)
+make run                Start the server container
+make stop               Stop the server container
+make restart            Restart the server container
+make clean              Stop and remove server container
+make logs               Follow server logs
+make status             Show container status
+make health             Check server health endpoint
+make build              Build Docker image locally
+make install-prek-hooks Install pre-commit hooks
+make tag                Create git tag from manifest.json version
 ```
 
 ### Quick Start
@@ -78,7 +77,13 @@ Lists all cached visualizations.
 ```json
 {
   "views": [
-    {"id": "a1b2c3d4e5f6", "source": "gs://bucket/path", "created": 1704825600, "expires_in": 3200}
+    {
+      "id": "a1b2c3d4e5f6",
+      "source": "gs://bucket/path",
+      "stats": {"success": 64, "pass": 90, "error": 0, "fail": 6, "warn": 0, "skipped": 10, "total": 170},
+      "created": 1704825600,
+      "expires_in": 3200
+    }
   ]
 }
 ```
@@ -113,7 +118,7 @@ Lists all cached visualizations.
 ### Setup
 
 ```bash
-make hooks  # Install pre-push hook via prek (one-time)
+make install-prek-hooks  # Install pre-push hook (one-time)
 ```
 
 This installs a pre-push hook that validates tag versions match `manifest.json`.
